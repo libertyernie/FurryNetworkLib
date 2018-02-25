@@ -11,14 +11,32 @@ namespace FurryNetworkLib {
 
         private FurryNetworkClient() { }
 
-        private HttpWebRequest CreateRequest(string method, string urlPath) {
+        private async Task<HttpWebRequest> CreateRequest(string method, string urlPath, object jsonBody = null) {
             var req = WebRequest.CreateHttp("https://beta.furrynetwork.com/api/" + urlPath);
             req.Method = method;
             req.UserAgent = "FurryNetworkLib/0.1 (https://www.github.com/libertyernie/FurryNetworkLib)";
             if (AccessToken != null) {
                 req.Headers["Authorization"] = $"Bearer {AccessToken}";
             }
+            if (jsonBody != null) {
+                req.ContentType = "application/json";
+                using (var sw = new StreamWriter(await req.GetRequestStreamAsync())) {
+                    await sw.WriteAsync(JsonConvert.SerializeObject(jsonBody));
+                }
+            }
             return req;
+        }
+
+        private async Task<WebResponse> ExecuteRequest(string method, string urlPath, object jsonBody = null) {
+            try {
+                var req = await CreateRequest(method, urlPath, jsonBody);
+                return await req.GetResponseAsync();
+            } catch (WebException ex) when ((ex.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.Unauthorized) {
+                await GetNewAccessToken();
+
+                var req = await CreateRequest(method, urlPath, jsonBody);
+                return await req.GetResponseAsync();
+            }
         }
 
         public static async Task<FurryNetworkClient> LoginAsync(string username, string password) {
@@ -28,11 +46,9 @@ namespace FurryNetworkLib {
             req.Accept = "application/json";
             req.UserAgent = "FurryNetworkLib/0.1 (https://www.github.com/libertyernie/FurryNetworkLib)";
             using (var sw = new StreamWriter(await req.GetRequestStreamAsync())) {
-                string str = "";
-                str+=($"username={WebUtility.UrlEncode(username)}&");
-                str += ($"password={WebUtility.UrlEncode(password)}&");
-                str += ($"grant_type=password&client_id=123&client_secret=");
-                await sw.WriteAsync(str);
+                await sw.WriteAsync($"username={WebUtility.UrlEncode(username)}&");
+                await sw.WriteAsync($"password={WebUtility.UrlEncode(password)}&");
+                await sw.WriteAsync($"grant_type=password&client_id=123&client_secret=");
                 await sw.FlushAsync();
             }
             using (var resp = await req.GetResponseAsync())
@@ -55,10 +71,39 @@ namespace FurryNetworkLib {
             }
         }
 
-        public async Task<User> GetUserAsync() {
-            var req = CreateRequest("GET", "user");
+        public async Task GetNewAccessToken() {
+            var req = WebRequest.CreateHttp("https://beta.furrynetwork.com/api/oauth/token");
+            req.Method = "POST";
+            req.ContentType = "application/x-www-form-urlencoded";
             req.Accept = "application/json";
+            req.UserAgent = "FurryNetworkLib/0.1 (https://www.github.com/libertyernie/FurryNetworkLib)";
+            using (var sw = new StreamWriter(await req.GetRequestStreamAsync())) {
+                await sw.WriteAsync($"client_id=123&");
+                await sw.WriteAsync($"grant_type=refresh_token&");
+                await sw.WriteAsync($"refresh_token={RefreshToken}");
+                await sw.FlushAsync();
+            }
             using (var resp = await req.GetResponseAsync())
+            using (var sr = new StreamReader(resp.GetResponseStream())) {
+                string json = await sr.ReadToEndAsync();
+                var obj = JsonConvert.DeserializeAnonymousType(json, new {
+                    access_token = "",
+                    expires_in = 0,
+                    token_type = "",
+                    refresh_token = "",
+                    user_id = 0
+                });
+                if (obj.token_type != "bearer") {
+                    throw new Exception("Token returned was not a bearer token");
+                }
+
+                RefreshToken = obj.refresh_token ?? RefreshToken;
+                AccessToken = obj.access_token;
+            }
+        }
+
+        public async Task<User> GetUserAsync() {
+            using (var resp = await ExecuteRequest("GET", "user"))
             using (var sr = new StreamReader(resp.GetResponseStream())) {
                 string json = await sr.ReadToEndAsync();
                 return JsonConvert.DeserializeObject<User>(json);
@@ -66,15 +111,9 @@ namespace FurryNetworkLib {
         }
 
         public async Task LogoutAsync() {
-            var req = CreateRequest("POST", "oauth/logout");
-            req.ContentType = "application/json";
-            using (var sw = new StreamWriter(await req.GetRequestStreamAsync())) {
-                await sw.WriteLineAsync(JsonConvert.SerializeObject(new {
-                    refresh_token = RefreshToken
-                }));
-            }
-
-            using (var resp = await req.GetResponseAsync()) { }
+            using (var resp = await ExecuteRequest("POST", "oauth/logout", jsonBody: new {
+                refresh_token = RefreshToken
+            })) { }
 
             AccessToken = null;
             RefreshToken = null;
