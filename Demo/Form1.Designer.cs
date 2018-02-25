@@ -30,6 +30,7 @@
             this.btnLogin = new System.Windows.Forms.Button();
             this.btnGetUser = new System.Windows.Forms.Button();
             this.btnLogOut = new System.Windows.Forms.Button();
+            this.btnShowMostRecentArtwork = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // label1
@@ -100,11 +101,23 @@
             this.btnLogOut.UseVisualStyleBackColor = true;
             this.btnLogOut.Click += new System.EventHandler(this.btnLogOut_Click);
             // 
+            // btnShowMostRecentArtwork
+            // 
+            this.btnShowMostRecentArtwork.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnShowMostRecentArtwork.Location = new System.Drawing.Point(12, 226);
+            this.btnShowMostRecentArtwork.Name = "btnShowMostRecentArtwork";
+            this.btnShowMostRecentArtwork.Size = new System.Drawing.Size(149, 23);
+            this.btnShowMostRecentArtwork.TabIndex = 7;
+            this.btnShowMostRecentArtwork.Text = "Show most recent artwork";
+            this.btnShowMostRecentArtwork.UseVisualStyleBackColor = true;
+            this.btnShowMostRecentArtwork.Click += new System.EventHandler(this.btnShowMostRecentArtwork_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(284, 261);
+            this.Controls.Add(this.btnShowMostRecentArtwork);
             this.Controls.Add(this.btnLogOut);
             this.Controls.Add(this.btnGetUser);
             this.Controls.Add(this.btnLogin);
@@ -128,6 +141,7 @@
         private System.Windows.Forms.Button btnLogin;
         private System.Windows.Forms.Button btnGetUser;
         private System.Windows.Forms.Button btnLogOut;
+        private System.Windows.Forms.Button btnShowMostRecentArtwork;
     }
 }
 

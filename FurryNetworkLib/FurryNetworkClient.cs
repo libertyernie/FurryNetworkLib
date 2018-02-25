@@ -1,6 +1,8 @@
 ﻿using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -107,6 +109,21 @@ namespace FurryNetworkLib {
             using (var sr = new StreamReader(resp.GetResponseStream())) {
                 string json = await sr.ReadToEndAsync();
                 return JsonConvert.DeserializeObject<User>(json);
+            }
+        }
+        
+        public async Task<SearchResults> SearchAsync(string character, IEnumerable<string> types = null, string sort = null) {
+            string qs = $"character={character}";
+            if (types != null && types.Any()) {
+                qs += $"&types[]={string.Join(",", types.Select(s => WebUtility.UrlEncode(s)))}";
+            }
+            if (!string.IsNullOrEmpty(sort)) {
+                qs += $"&sort={WebUtility.UrlEncode(sort)}";
+            }
+            using (var resp = await ExecuteRequest("GET", $"search?{qs}"))
+            using (var sr = new StreamReader(resp.GetResponseStream())) {
+                string json = await sr.ReadToEndAsync();
+                return JsonConvert.DeserializeObject<SearchResults>(json);
             }
         }
 

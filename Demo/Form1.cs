@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -48,6 +49,16 @@ namespace Demo {
             await _client.LogoutAsync();
             _client = null;
             btnGetUser.Enabled = btnLogOut.Enabled = false;
+        }
+
+        private async void btnShowMostRecentArtwork_Click(object sender, EventArgs e) {
+            var searchResults = await _client.SearchAsync("lizard-socks", new[] { "artwork" });
+            if (!searchResults.Hits.Any()) {
+                MessageBox.Show(this, "No search results found.");
+            } else {
+                Process.Start(searchResults.Hits.First()._source.Images.Original);
+                Process.Start($"https://beta.furrynetwork.com/artwork/{searchResults.Hits.First()._id}");
+            }
         }
     }
 }
