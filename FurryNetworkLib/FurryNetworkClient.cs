@@ -112,6 +112,22 @@ namespace FurryNetworkLib {
             }
         }
 
+        public async Task<Character> GetCharacterAsync(string name) {
+            using (var resp = await ExecuteRequest("GET", $"character/{WebUtility.UrlEncode(name)}"))
+            using (var sr = new StreamReader(resp.GetResponseStream())) {
+                string json = await sr.ReadToEndAsync();
+                return JsonConvert.DeserializeObject<Character>(json);
+            }
+        }
+
+        public async Task<Artwork> GetArtworkAsync(int id) {
+            using (var resp = await ExecuteRequest("GET", $"artwork/{id}"))
+            using (var sr = new StreamReader(resp.GetResponseStream())) {
+                string json = await sr.ReadToEndAsync();
+                return JsonConvert.DeserializeObject<Artwork>(json);
+            }
+        }
+
         public async Task<SearchResults> SearchByTypeAsync(string type, string sort = null, int? from = 0) {
             string qs = "";
             if (!string.IsNullOrEmpty(sort)) {
