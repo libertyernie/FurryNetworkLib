@@ -11,7 +11,9 @@ namespace FurryNetworkLib {
         public string AccessToken { get; private set; }
         public string RefreshToken { get; private set; }
 
-        private FurryNetworkClient() { }
+        public FurryNetworkClient(string refreshToken = null) {
+            RefreshToken = refreshToken;
+        }
 
         private async Task<HttpWebRequest> CreateRequest(string method, string urlPath, object jsonBody = null) {
             var req = WebRequest.CreateHttp("https://beta.furrynetwork.com/api/" + urlPath);
@@ -30,10 +32,14 @@ namespace FurryNetworkLib {
         }
 
         private async Task<WebResponse> ExecuteRequest(string method, string urlPath, object jsonBody = null) {
+            if (AccessToken == null && RefreshToken != null) {
+                await GetNewAccessToken();
+            }
+
             try {
                 var req = await CreateRequest(method, urlPath, jsonBody);
                 return await req.GetResponseAsync();
-            } catch (WebException ex) when ((ex.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.Unauthorized) {
+            } catch (WebException ex) when (RefreshToken != null && (ex.Response as HttpWebResponse)?.StatusCode == HttpStatusCode.Unauthorized) {
                 await GetNewAccessToken();
 
                 var req = await CreateRequest(method, urlPath, jsonBody);
