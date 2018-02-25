@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 
 namespace FurryNetworkLib {
     public class User {
@@ -8,7 +9,7 @@ namespace FurryNetworkLib {
         public long Created { get; set; }
         public bool Enabled { get; set; }
         public bool Verified { get; set; }
-        public string Birthdate { get; set; }
+        public DateTime Birthdate { get; set; }
         public int Rating { get; set; }
         public bool Notify_as_buyer { get; set; }
         public bool Notify_as_seller { get; set; }

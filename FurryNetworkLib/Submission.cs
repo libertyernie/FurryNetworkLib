@@ -10,10 +10,10 @@ namespace FurryNetworkLib {
         public string Description { get; set; }
         public int Rating { get; set; }
         public string Status { get; set; }
-        public string Created { get; set; }
-        public string Updated { get; set; }
-        public string Published { get; set; }
-        public string Made_public_date { get; set; }
+        public DateTime Created { get; set; }
+        public DateTime Updated { get; set; }
+        public DateTime Published { get; set; }
+        public DateTime Made_public_date { get; set; }
         public object Deleted { get; set; }
         public object Hard_deleted { get; set; } // boolean or int
         public bool Processed { get; set; }

@@ -17,7 +17,7 @@ namespace FurryNetworkLib {
         public int Banner_explicit { get; set; }
         public bool Staff { get; set; }
         public object Deleted { get; set; }
-        public string Last_login { get; set; }
+        public DateTime Last_login { get; set; }
         public bool Accepting_commissions { get; set; }
         public object Pricesheet { get; set; }
         public object Pricesheet_nsfw { get; set; }
