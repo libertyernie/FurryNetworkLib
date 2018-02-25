@@ -13,11 +13,12 @@ namespace FurryNetworkLib {
             public int _id { get; set; }
             public Dictionary<string, object> _source { get; set; }
             public IEnumerable<object> _sort { get; set; }
-            
+
+            private string Json => JsonConvert.SerializeObject(_source);
             public Submission Submission =>
-                _type == "artwork" ? JsonConvert.DeserializeObject<Artwork>(JsonConvert.SerializeObject(_source))
-                : _type == "journal" ? JsonConvert.DeserializeObject<Journal>(JsonConvert.SerializeObject(_source))
-                : JsonConvert.DeserializeObject<Submission>(JsonConvert.SerializeObject(_source));
+                _type == "artwork" ? JsonConvert.DeserializeObject<Artwork>(Json)
+                : _type == "journal" ? JsonConvert.DeserializeObject<Journal>(Json)
+                : JsonConvert.DeserializeObject<Submission>(Json);
         }
     }
 }

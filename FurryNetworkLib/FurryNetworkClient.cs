@@ -112,13 +112,16 @@ namespace FurryNetworkLib {
             }
         }
         
-        public async Task<SearchResults> SearchAsync(string character, IEnumerable<string> types = null, string sort = null) {
+        public async Task<SearchResults> SearchAsync(string character, IEnumerable<string> types = null, string sort = null, int? from = 0) {
             string qs = $"character={character}";
             if (types != null && types.Any()) {
                 qs += $"&types[]={string.Join(",", types.Select(s => WebUtility.UrlEncode(s)))}";
             }
             if (!string.IsNullOrEmpty(sort)) {
                 qs += $"&sort={WebUtility.UrlEncode(sort)}";
+            }
+            if (from != null) {
+                qs += $"&from={from}";
             }
             using (var resp = await ExecuteRequest("GET", $"search?{qs}"))
             using (var sr = new StreamReader(resp.GetResponseStream())) {
