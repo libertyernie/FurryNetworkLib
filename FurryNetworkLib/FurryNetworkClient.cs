@@ -111,8 +111,23 @@ namespace FurryNetworkLib {
                 return JsonConvert.DeserializeObject<User>(json);
             }
         }
-        
-        public async Task<SearchResults> SearchAsync(string character, IEnumerable<string> types = null, string sort = null, int? from = 0) {
+
+        public async Task<SearchResults> SearchByTypeAsync(string type, string sort = null, int? from = 0) {
+            string qs = "";
+            if (!string.IsNullOrEmpty(sort)) {
+                qs += $"&sort={WebUtility.UrlEncode(sort)}";
+            }
+            if (from != null) {
+                qs += $"&from={from}";
+            }
+            using (var resp = await ExecuteRequest("GET", $"search/{WebUtility.UrlEncode(type)}?{qs}"))
+            using (var sr = new StreamReader(resp.GetResponseStream())) {
+                string json = await sr.ReadToEndAsync();
+                return JsonConvert.DeserializeObject<SearchResults>(json);
+            }
+        }
+
+        public async Task<SearchResults> SearchByCharacterAsync(string character, IEnumerable<string> types = null, string sort = null, int? from = 0) {
             string qs = $"character={character}";
             if (types != null && types.Any()) {
                 qs += $"&types[]={string.Join(",", types.Select(s => WebUtility.UrlEncode(s)))}";
