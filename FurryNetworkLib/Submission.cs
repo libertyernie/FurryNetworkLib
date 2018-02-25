@@ -13,6 +13,7 @@ namespace FurryNetworkLib {
         public string Created { get; set; }
         public string Updated { get; set; }
         public string Published { get; set; }
+        public string Made_public_date { get; set; }
         public object Deleted { get; set; }
         public object Hard_deleted { get; set; } // boolean or int
         public bool Processed { get; set; }
@@ -21,7 +22,7 @@ namespace FurryNetworkLib {
         public object Ticket_id { get; set; }
         public IEnumerable<object> Collection_ids { get; set; }
         public Character Character { get; set; }
-        public IEnumerable<object> Tags { get; set; }
+        public IEnumerable<string> Tags { get; set; }
         public bool Promoted { get; set; }
         public int Comments { get; set; }
         public int Favorites { get; set; }
@@ -31,10 +32,10 @@ namespace FurryNetworkLib {
         public int Views { get; set; }
         public bool Favorited { get; set; }
         public object Tag_suggest { get; set; }
-        public IEnumerable<object> Promote_array { get; set; }
+        public IEnumerable<string> Promote_array { get; set; }
     }
 
-    public class Artwork : Submission {
+    public abstract class FileSubmission : Submission {
         public string Md5 { get; set; }
         public string Url { get; set; }
         public string File_name { get; set; }
@@ -45,8 +46,15 @@ namespace FurryNetworkLib {
         public Images Images { get; set; }
     }
 
-    public class Journal : Submission {
+    public class Artwork : FileSubmission { }
+    public class Photo : FileSubmission { }
+    public class Multimedia : FileSubmission { }
+
+    public abstract class TextSubmission : Submission {
         public string Subtitle { get; set; }
         public string Content { get; set; }
     }
+
+    public class Story : TextSubmission { }
+    public class Journal : TextSubmission { }
 }

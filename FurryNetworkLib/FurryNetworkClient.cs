@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace FurryNetworkLib {
     public class FurryNetworkClient {
-        public string AccessToken { get; private set; }
+        private string AccessToken { get; set; }
         public string RefreshToken { get; private set; }
 
         public FurryNetworkClient(string refreshToken = null) {
@@ -47,6 +47,11 @@ namespace FurryNetworkLib {
             }
         }
 
+        /// <summary>
+        /// Create a FurryNetworkClient object with a username and password.
+        /// </summary>
+        /// <param name="username">Your FurryNetwork username</param>
+        /// <param name="password">Your FurryNetwork password</param>
         public static async Task<FurryNetworkClient> LoginAsync(string username, string password) {
             var req = WebRequest.CreateHttp("https://beta.furrynetwork.com/api/oauth/token");
             req.Method = "POST";
@@ -78,8 +83,8 @@ namespace FurryNetworkLib {
                 };
             }
         }
-
-        public async Task GetNewAccessToken() {
+        
+        private async Task GetNewAccessToken() {
             var req = WebRequest.CreateHttp("https://beta.furrynetwork.com/api/oauth/token");
             req.Method = "POST";
             req.ContentType = "application/x-www-form-urlencoded";
@@ -110,6 +115,9 @@ namespace FurryNetworkLib {
             }
         }
 
+        /// <summary>
+        /// Get information about the currently logged in user.
+        /// </summary>
         public async Task<User> GetUserAsync() {
             using (var resp = await ExecuteRequest("GET", "user"))
             using (var sr = new StreamReader(resp.GetResponseStream())) {
@@ -118,6 +126,10 @@ namespace FurryNetworkLib {
             }
         }
 
+        /// <summary>
+        /// Get information about the character with the given name.
+        /// </summary>
+        /// <param name="name">The character name</param>
         public async Task<Character> GetCharacterAsync(string name) {
             using (var resp = await ExecuteRequest("GET", $"character/{WebUtility.UrlEncode(name)}"))
             using (var sr = new StreamReader(resp.GetResponseStream())) {
@@ -126,6 +138,10 @@ namespace FurryNetworkLib {
             }
         }
 
+        /// <summary>
+        /// Get information about an uploaded work.
+        /// </summary>
+        /// <param name="id">The artwork ID</param>
         public async Task<Artwork> GetArtworkAsync(int id) {
             using (var resp = await ExecuteRequest("GET", $"artwork/{id}"))
             using (var sr = new StreamReader(resp.GetResponseStream())) {
@@ -134,6 +150,12 @@ namespace FurryNetworkLib {
             }
         }
 
+        /// <summary>
+        /// Search submissions by type.
+        /// </summary>
+        /// <param name="type">The type (e.g. "artwork")</param>
+        /// <param name="sort">The sort order</param>
+        /// <param name="from">The offset at which to start the search results</param>
         public async Task<SearchResults> SearchByTypeAsync(string type, string sort = null, int? from = 0) {
             string qs = "";
             if (!string.IsNullOrEmpty(sort)) {
@@ -149,6 +171,13 @@ namespace FurryNetworkLib {
             }
         }
 
+        /// <summary>
+        /// Search submissions by the character under whose name it was uploaded.
+        /// </summary>
+        /// <param name="character">The character name</param>
+        /// <param name="types">Filter to certain types (e.g. "artwork")</param>
+        /// <param name="sort">The sort order</param>
+        /// <param name="from">The offset at which to start the search results</param>
         public async Task<SearchResults> SearchByCharacterAsync(string character, IEnumerable<string> types = null, string sort = null, int? from = 0) {
             string qs = $"character={character}";
             if (types != null && types.Any()) {
@@ -167,6 +196,9 @@ namespace FurryNetworkLib {
             }
         }
 
+        /// <summary>
+        /// Invalidate the refresh token.
+        /// </summary>
         public async Task LogoutAsync() {
             using (var resp = await ExecuteRequest("POST", "oauth/logout", jsonBody: new {
                 refresh_token = RefreshToken
