@@ -9,6 +9,18 @@ namespace FurryNetworkLib {
         public string AccessToken { get; private set; }
         public string RefreshToken { get; private set; }
 
+        private FurryNetworkClient() { }
+
+        private HttpWebRequest CreateRequest(string method, string urlPath) {
+            var req = WebRequest.CreateHttp("https://beta.furrynetwork.com/api/" + urlPath);
+            req.Method = method;
+            req.UserAgent = "FurryNetworkLib/0.1 (https://www.github.com/libertyernie/FurryNetworkLib)";
+            if (AccessToken != null) {
+                req.Headers["Authorization"] = $"Bearer {AccessToken}";
+            }
+            return req;
+        }
+
         public static async Task<FurryNetworkClient> LoginAsync(string username, string password) {
             var req = WebRequest.CreateHttp("https://beta.furrynetwork.com/api/oauth/token");
             req.Method = "POST";
@@ -44,12 +56,8 @@ namespace FurryNetworkLib {
         }
 
         public async Task<User> GetUserAsync() {
-            var req = WebRequest.CreateHttp("https://beta.furrynetwork.com/api/user");
-            req.Method = "GET";
-            req.ContentType = "application/json";
+            var req = CreateRequest("GET", "user");
             req.Accept = "application/json";
-            req.UserAgent = "FurryNetworkLib/0.1 (https://www.github.com/libertyernie/FurryNetworkLib)";
-            req.Headers["Authorization"] = $"Bearer {AccessToken}";
             using (var resp = await req.GetResponseAsync())
             using (var sr = new StreamReader(resp.GetResponseStream())) {
                 string json = await sr.ReadToEndAsync();
@@ -58,11 +66,8 @@ namespace FurryNetworkLib {
         }
 
         public async Task LogoutAsync() {
-            var req = WebRequest.CreateHttp("https://beta.furrynetwork.com/api/oauth/logout");
-            req.Method = "POST";
+            var req = CreateRequest("POST", "oauth/logout");
             req.ContentType = "application/json";
-            req.UserAgent = "FurryNetworkLib/0.1 (https://www.github.com/libertyernie/FurryNetworkLib)";
-            req.Headers["Authorization"] = $"Bearer {AccessToken}";
             using (var sw = new StreamWriter(await req.GetRequestStreamAsync())) {
                 await sw.WriteLineAsync(JsonConvert.SerializeObject(new {
                     refresh_token = RefreshToken
