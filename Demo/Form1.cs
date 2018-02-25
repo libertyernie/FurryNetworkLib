@@ -52,7 +52,8 @@ namespace Demo {
         }
 
         private async void btnShowMostRecentArtwork_Click(object sender, EventArgs e) {
-            var searchResults = await _client.SearchByCharacterAsync("lizard-socks", new[] { "artwork" });
+            var user = await _client.GetUserAsync();
+            var searchResults = await _client.SearchByCharacterAsync(user.DefaultCharacter.Name, new[] { "artwork" });
             foreach (var submission in searchResults.Hits.Select(h => h.Submission)) {
                 if (submission is Artwork a) {
                     Process.Start(a.Images.Original);

@@ -20,7 +20,7 @@ namespace FurryNetworkLib {
         public string Record_type { get; set; }
         public object Ticket_id { get; set; }
         public IEnumerable<object> Collection_ids { get; set; }
-        //public Character Character { get; set; }
+        public Character Character { get; set; }
         public IEnumerable<object> Tags { get; set; }
         public bool Promoted { get; set; }
         public int Comments { get; set; }
