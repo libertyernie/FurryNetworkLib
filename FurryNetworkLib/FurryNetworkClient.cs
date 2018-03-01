@@ -196,6 +196,63 @@ namespace FurryNetworkLib {
             }
         }
 
+		private const int ChunkSize = 524288;
+
+		public async Task<Artwork> UploadArtwork(string characterName, byte[] data, string contentType, string filename) {
+			string identifier = Guid.NewGuid().ToString();
+
+			IEnumerable<byte[]> chunkGenerator() {
+				for (int i = 0; i < data.Length; i += ChunkSize) {
+					yield return data.Skip(i).Take(ChunkSize).ToArray();
+				}
+			};
+
+			byte[][] chunks = chunkGenerator().ToArray();
+
+			int chunkNumber = 1;
+			foreach (byte[] partial in chunks) {
+				string url = $"submission/{WebUtility.UrlEncode(characterName)}/artwork/upload?";
+				url += $"resumableChunkNumber={chunkNumber}&";
+				url += $"resumableChunkSize={ChunkSize}&";
+				url += $"resumableCurrentChunkSize={partial.Length}&";
+				url += $"resumableTotalSize={data.Length}&";
+				url += $"resumableType={WebUtility.UrlEncode(contentType)}& ";
+				url += $"resumableIdentifier={identifier}& ";
+				url += $"resumableFilename={WebUtility.UrlEncode(filename)}&";
+				url += $"resumableRelativePath={WebUtility.UrlEncode(filename)}&";
+				url += $"resumableTotalChunks={chunks.Length}";
+
+				using (var resp1 = await ExecuteRequest("GET", url)) { }
+
+				var req2 = WebRequest.CreateHttp("https://beta.furrynetwork.com/api/" + url);
+				req2.Method = "POST";
+				req2.UserAgent = "FurryNetworkLib/0.1 (https://www.github.com/libertyernie/FurryNetworkLib)";
+				if (AccessToken != null) {
+					req2.Headers["Authorization"] = $"Bearer {AccessToken}";
+				}
+				req2.Accept = "application/json";
+				req2.ContentType = "binary/octet-stream";
+				req2.ContentLength = partial.Length;
+				using (var stream = await req2.GetRequestStreamAsync()) {
+					await stream.WriteAsync(partial, 0, partial.Length);
+				}
+
+				using (var resp2 = await req2.GetResponseAsync())
+				using (var sr = new StreamReader(resp2.GetResponseStream())) {
+					string body = await sr.ReadToEndAsync();
+					if (resp2.ContentType == "application/json") {
+						try {
+							return JsonConvert.DeserializeObject<Artwork>(body);
+						} catch (JsonException) { }
+					}
+				}
+
+				chunkNumber++;
+			}
+
+			throw new Exception("No well-formed json response recieved");
+		}
+
         /// <summary>
         /// Invalidate the refresh token.
         /// </summary>

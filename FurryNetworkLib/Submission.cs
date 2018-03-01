@@ -11,9 +11,9 @@ namespace FurryNetworkLib {
         public int Rating { get; set; }
         public string Status { get; set; }
         public DateTime Created { get; set; }
-        public DateTime Updated { get; set; }
-        public DateTime Published { get; set; }
-        public DateTime Made_public_date { get; set; }
+        public DateTime? Updated { get; set; }
+        public DateTime? Published { get; set; }
+        public DateTime? Made_public_date { get; set; }
         public object Deleted { get; set; }
         public object Hard_deleted { get; set; } // boolean or int
         public bool Processed { get; set; }
