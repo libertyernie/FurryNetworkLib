@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -25,7 +26,10 @@ namespace FurryNetworkLib {
             if (jsonBody != null) {
                 req.ContentType = "application/json";
                 using (var sw = new StreamWriter(await req.GetRequestStreamAsync())) {
-                    await sw.WriteAsync(JsonConvert.SerializeObject(jsonBody));
+					string json = JsonConvert.SerializeObject(jsonBody, new JsonSerializerSettings {
+						ContractResolver = new CamelCasePropertyNamesContractResolver()
+					});
+					await sw.WriteAsync(json);
                 }
             }
             return req;
@@ -139,7 +143,7 @@ namespace FurryNetworkLib {
         }
 
         /// <summary>
-        /// Get information about an uploaded work.
+        /// Get information about a public artwork.
         /// </summary>
         /// <param name="id">The artwork ID</param>
         public async Task<Artwork> GetArtworkAsync(int id) {
@@ -148,15 +152,53 @@ namespace FurryNetworkLib {
                 string json = await sr.ReadToEndAsync();
                 return JsonConvert.DeserializeObject<Artwork>(json);
             }
-        }
+		}
 
-        /// <summary>
-        /// Search submissions by type.
-        /// </summary>
-        /// <param name="type">The type (e.g. "artwork")</param>
-        /// <param name="sort">The sort order</param>
-        /// <param name="from">The offset at which to start the search results</param>
-        public async Task<SearchResults> SearchByTypeAsync(string type, string sort = null, int? from = 0) {
+		/// <summary>
+		/// Get information about a private artwork.
+		/// </summary>
+		/// <param name="id">The artwork ID</param>
+		public async Task<Artwork> GetPrivateArtworkAsync(int id) {
+			using (var resp = await ExecuteRequest("GET", $"artwork/{id}"))
+			using (var sr = new StreamReader(resp.GetResponseStream())) {
+				string json = await sr.ReadToEndAsync();
+				return JsonConvert.DeserializeObject<Artwork>(json);
+			}
+		}
+
+		public class UpdateArtworkParameters {
+			public IEnumerable<object> Collections { get; set; }
+			public bool Community_tags_allowed { get; set; }
+			public string Description { get; set; }
+			public bool Publish { get; set; }
+			public int Rating { get; set; } // 0, 1, 2
+			public string Status { get; set; } // draft, unlisted, public
+			public IEnumerable<string> Tags { get; set; }
+			public string Title { get; set; }
+
+			public UpdateArtworkParameters() {
+				Collections = Enumerable.Empty<object>();
+				Community_tags_allowed = true;
+				Status = "draft";
+				Tags = Enumerable.Empty<string>();
+			}
+		}
+
+		public async Task UpdateArtwork(int id, UpdateArtworkParameters parameters) {
+			using (var resp = await ExecuteRequest("PATCH", $"artwork/{id}", parameters))
+			using (var sr = new StreamReader(resp.GetResponseStream())) {
+				string json = await sr.ReadToEndAsync();
+				// Not trying to parse JSON because "tags" object is incorrectly a regular object and not an array
+			}
+		}
+
+		/// <summary>
+		/// Search submissions by type.
+		/// </summary>
+		/// <param name="type">The type (e.g. "artwork")</param>
+		/// <param name="sort">The sort order</param>
+		/// <param name="from">The offset at which to start the search results</param>
+		public async Task<SearchResults> SearchByTypeAsync(string type, string sort = null, int? from = 0) {
             string qs = "";
             if (!string.IsNullOrEmpty(sort)) {
                 qs += $"&sort={WebUtility.UrlEncode(sort)}";
