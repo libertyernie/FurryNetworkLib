@@ -198,6 +198,10 @@ namespace FurryNetworkLib {
 			}
 		}
 
+		public async Task DeleteArtwork(int id) {
+			using (var resp = await ExecuteRequest("DELETE", $"artwork/{id}")) { }
+		}
+
 		/// <summary>
 		/// Search submissions by type.
 		/// </summary>
