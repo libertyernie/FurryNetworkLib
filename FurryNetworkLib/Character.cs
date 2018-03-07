@@ -17,7 +17,7 @@ namespace FurryNetworkLib {
         public int Banner_explicit { get; set; }
         public bool Staff { get; set; }
         public object Deleted { get; set; }
-        public DateTime Last_login { get; set; }
+        public DateTime? Last_login { get; set; }
         public bool Accepting_commissions { get; set; }
         public object Pricesheet { get; set; }
         public object Pricesheet_nsfw { get; set; }
@@ -32,7 +32,7 @@ namespace FurryNetworkLib {
         public bool IsAuthenticatedUser { get; set; }
         public bool Following { get; set; }
         public bool FollowingCommissions { get; set; }
-        public object Avatars { get; set; }
+        public Avatars Avatars { get; set; }
         public object Banners { get; set; }
         public CharacterStats Stats { get; set; }
     }

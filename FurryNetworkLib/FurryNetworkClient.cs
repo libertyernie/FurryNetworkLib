@@ -8,6 +8,12 @@ using System.Net;
 using System.Threading.Tasks;
 
 namespace FurryNetworkLib {
+	internal static class Workarounds {
+		public static string FixJson(this string s) {
+			return s.Replace("\"avatars\":[]", "\"avatars\":{}");
+		}
+	}
+
     public class FurryNetworkClient {
         private string AccessToken { get; set; }
         public string RefreshToken { get; private set; }
@@ -126,7 +132,7 @@ namespace FurryNetworkLib {
             using (var resp = await ExecuteRequest("GET", "user"))
             using (var sr = new StreamReader(resp.GetResponseStream())) {
                 string json = await sr.ReadToEndAsync();
-                return JsonConvert.DeserializeObject<User>(json);
+                return JsonConvert.DeserializeObject<User>(json.FixJson());
             }
         }
 
@@ -138,7 +144,7 @@ namespace FurryNetworkLib {
             using (var resp = await ExecuteRequest("GET", $"character/{WebUtility.UrlEncode(name)}"))
             using (var sr = new StreamReader(resp.GetResponseStream())) {
                 string json = await sr.ReadToEndAsync();
-                return JsonConvert.DeserializeObject<Character>(json);
+                return JsonConvert.DeserializeObject<Character>(json.FixJson());
             }
         }
 
@@ -150,7 +156,7 @@ namespace FurryNetworkLib {
             using (var resp = await ExecuteRequest("GET", $"artwork/{id}"))
             using (var sr = new StreamReader(resp.GetResponseStream())) {
                 string json = await sr.ReadToEndAsync();
-                return JsonConvert.DeserializeObject<Artwork>(json);
+                return JsonConvert.DeserializeObject<Artwork>(json.FixJson());
             }
 		}
 
@@ -162,7 +168,7 @@ namespace FurryNetworkLib {
 			using (var resp = await ExecuteRequest("GET", $"artwork/{id}"))
 			using (var sr = new StreamReader(resp.GetResponseStream())) {
 				string json = await sr.ReadToEndAsync();
-				return JsonConvert.DeserializeObject<Artwork>(json);
+				return JsonConvert.DeserializeObject<Artwork>(json.FixJson());
 			}
 		}
 
@@ -209,7 +215,7 @@ namespace FurryNetworkLib {
             using (var resp = await ExecuteRequest("GET", $"search/{WebUtility.UrlEncode(type)}?{qs}"))
             using (var sr = new StreamReader(resp.GetResponseStream())) {
                 string json = await sr.ReadToEndAsync();
-                return JsonConvert.DeserializeObject<SearchResults>(json);
+                return JsonConvert.DeserializeObject<SearchResults>(json.FixJson());
             }
         }
 
@@ -234,7 +240,7 @@ namespace FurryNetworkLib {
             using (var resp = await ExecuteRequest("GET", $"search?{qs}"))
             using (var sr = new StreamReader(resp.GetResponseStream())) {
                 string json = await sr.ReadToEndAsync();
-                return JsonConvert.DeserializeObject<SearchResults>(json);
+                return JsonConvert.DeserializeObject<SearchResults>(json.FixJson());
             }
         }
 
@@ -284,7 +290,7 @@ namespace FurryNetworkLib {
 					string body = await sr.ReadToEndAsync();
 					if (resp2.ContentType == "application/json") {
 						try {
-							return JsonConvert.DeserializeObject<Artwork>(body);
+							return JsonConvert.DeserializeObject<Artwork>(body.FixJson());
 						} catch (JsonException) { }
 					}
 				}
