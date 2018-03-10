@@ -207,12 +207,16 @@ namespace FurryNetworkLib {
 		/// </summary>
 		/// <param name="type">The type (e.g. "artwork")</param>
 		/// <param name="sort">The sort order</param>
+		/// <param name="tags">A list of tags to filter by</param>
 		/// <param name="from">The offset at which to start the search results</param>
-		public async Task<SearchResults> SearchByTypeAsync(string type, string sort = null, int? from = 0) {
+		public async Task<SearchResults> SearchByTypeAsync(string type, string sort = null, IEnumerable<string> tags = null, int? from = 0) {
             string qs = "";
             if (!string.IsNullOrEmpty(sort)) {
                 qs += $"&sort={WebUtility.UrlEncode(sort)}";
             }
+			foreach (var tag in tags ?? Enumerable.Empty<string>()) {
+				qs += $"&tags[]={WebUtility.UrlEncode(tag)}";
+			}
             if (from != null) {
                 qs += $"&from={from}";
             }
