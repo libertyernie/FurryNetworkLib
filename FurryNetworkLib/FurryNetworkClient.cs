@@ -250,7 +250,21 @@ namespace FurryNetworkLib {
                 string json = await sr.ReadToEndAsync();
                 return JsonConvert.DeserializeObject<SearchResults>(json.FixJson());
             }
-        }
+		}
+
+		/// <summary>
+		/// Get a list of journals uploaded by a user/character.
+		/// </summary>
+		/// <param name="character">The character name</param>
+		/// <param name="page">The page at which to start the search results</param>
+		/// <param name="status">The status of journals to get (public, unlisted, or draft)</param>
+		public async Task<JournalsResult> GetJournalsAsync(string character, int? page = 1, string status = "public") {
+			using (var resp = await ExecuteRequest("GET", $"journal?page={page}&status={WebUtility.UrlEncode(status)}"))
+			using (var sr = new StreamReader(resp.GetResponseStream())) {
+				string json = await sr.ReadToEndAsync();
+				return JsonConvert.DeserializeObject<JournalsResult>(json.FixJson());
+			}
+		}
 
 		private const int ChunkSize = 524288;
 
@@ -309,10 +323,45 @@ namespace FurryNetworkLib {
 			throw new Exception("No well-formed json response recieved");
 		}
 
-        /// <summary>
-        /// Invalidate the refresh token.
-        /// </summary>
-        public async Task LogoutAsync() {
+		/// <summary>
+		/// Change the current character.
+		/// </summary>
+		/// <param name="newCharacterName">The character name to switch to</param>
+		/// <returns>The newly selected character</returns>
+		public async Task<Character> ChangeCharacterAsync(string newCharacterName) {
+			using (var resp = await ExecuteRequest("POST", "current-character", new { character = newCharacterName }))
+			using (var sr = new StreamReader(resp.GetResponseStream())) {
+				string json = await sr.ReadToEndAsync();
+				return JsonConvert.DeserializeObject<Character>(json.FixJson());
+			}
+		}
+
+		/// <summary>
+		/// Posts a new journal entry to Furry Network as the current character.
+		/// </summary>
+		/// <param name="j">Journal entry data</param>
+		/// <returns>The newly created journal entry</returns>
+		public async Task<Journal> PostJournalAsync(NewJournal j) {
+			using (var resp = await ExecuteRequest("POST", "journal", j))
+			using (var sr = new StreamReader(resp.GetResponseStream())) {
+				string json = await sr.ReadToEndAsync();
+				return JsonConvert.DeserializeObject<Journal>(json.FixJson());
+			}
+		}
+
+		/// <summary>
+		/// Deletes a journal entry from Furry Network.
+		/// </summary>
+		/// <param name="id">Journal ID</param>
+		public async Task DeleteJournalAsync(int id) {
+			using (var resp = await ExecuteRequest("DELETE", $"journal/{id}"))
+			using (var stream = resp.GetResponseStream()) {}
+		}
+
+		/// <summary>
+		/// Invalidate the refresh token.
+		/// </summary>
+		public async Task LogoutAsync() {
             using (var resp = await ExecuteRequest("POST", "oauth/logout", jsonBody: new {
                 refresh_token = RefreshToken
             })) { }
