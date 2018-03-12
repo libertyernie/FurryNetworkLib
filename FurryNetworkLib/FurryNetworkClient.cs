@@ -25,7 +25,7 @@ namespace FurryNetworkLib {
         private async Task<HttpWebRequest> CreateRequest(string method, string urlPath, object jsonBody = null) {
             var req = WebRequest.CreateHttp("https://beta.furrynetwork.com/api/" + urlPath);
             req.Method = method;
-            req.UserAgent = "FurryNetworkLib/0.1 (https://www.github.com/libertyernie/FurryNetworkLib)";
+            req.UserAgent = "FurryNetworkLib/0.2 (https://www.github.com/libertyernie/FurryNetworkLib)";
             if (AccessToken != null) {
                 req.Headers["Authorization"] = $"Bearer {AccessToken}";
             }
@@ -259,7 +259,7 @@ namespace FurryNetworkLib {
 		/// <param name="page">The page at which to start the search results</param>
 		/// <param name="status">The status of journals to get (public, unlisted, or draft)</param>
 		public async Task<JournalsResult> GetJournalsAsync(string character, int? page = 1, string status = "public") {
-			using (var resp = await ExecuteRequest("GET", $"journal?page={page}&status={WebUtility.UrlEncode(status)}"))
+			using (var resp = await ExecuteRequest("GET", $"submission/lizard-socks/journal?page={page}&status={WebUtility.UrlEncode(status)}"))
 			using (var sr = new StreamReader(resp.GetResponseStream())) {
 				string json = await sr.ReadToEndAsync();
 				return JsonConvert.DeserializeObject<JournalsResult>(json.FixJson());
@@ -337,12 +337,13 @@ namespace FurryNetworkLib {
 		}
 
 		/// <summary>
-		/// Posts a new journal entry to Furry Network as the current character.
+		/// Posts a new journal entry to Furry Network.
 		/// </summary>
+		/// <param name="characterName">Character name under which to post the journal</param>
 		/// <param name="j">Journal entry data</param>
 		/// <returns>The newly created journal entry</returns>
-		public async Task<Journal> PostJournalAsync(NewJournal j) {
-			using (var resp = await ExecuteRequest("POST", "journal", j))
+		public async Task<Journal> PostJournalAsync(string characterName, NewJournal j) {
+			using (var resp = await ExecuteRequest("POST", $"journal", j))
 			using (var sr = new StreamReader(resp.GetResponseStream())) {
 				string json = await sr.ReadToEndAsync();
 				return JsonConvert.DeserializeObject<Journal>(json.FixJson());
@@ -352,8 +353,9 @@ namespace FurryNetworkLib {
 		/// <summary>
 		/// Deletes a journal entry from Furry Network.
 		/// </summary>
+		/// <param name="characterName">Character name that the journal is under</param>
 		/// <param name="id">Journal ID</param>
-		public async Task DeleteJournalAsync(int id) {
+		public async Task DeleteJournalAsync(string characterName, int id) {
 			using (var resp = await ExecuteRequest("DELETE", $"journal/{id}"))
 			using (var stream = resp.GetResponseStream()) {}
 		}

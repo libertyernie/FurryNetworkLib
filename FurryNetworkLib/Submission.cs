@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace FurryNetworkLib {
-    public class Submission {
+	// TODO: Split this into two separate types, depending on whether results are coming from api/search or api/submission. ("tags" object is different.)
+	public class Submission {
         public int Id { get; set; }
         public int CharacterId { get; set; }
         public string Title { get; set; }
@@ -22,7 +23,7 @@ namespace FurryNetworkLib {
         public object Ticket_id { get; set; }
         public IEnumerable<object> Collection_ids { get; set; }
         public Character Character { get; set; }
-        public IEnumerable<string> Tags { get; set; }
+        public IEnumerable<object> Tags { get; set; }
         public bool Promoted { get; set; }
         public int Comments { get; set; }
         public int Favorites { get; set; }
