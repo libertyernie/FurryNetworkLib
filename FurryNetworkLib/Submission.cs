@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace FurryNetworkLib {
-	// TODO: Split this into two separate types, depending on whether results are coming from api/search or api/submission. ("tags" object is different.)
 	public class Submission {
         public int Id { get; set; }
         public int CharacterId { get; set; }
@@ -34,6 +35,21 @@ namespace FurryNetworkLib {
         public bool Favorited { get; set; }
         public object Tag_suggest { get; set; }
         public IEnumerable<string> Promote_array { get; set; }
+
+		public IEnumerable<string> TagStrings {
+			get {
+				foreach (var tag in Tags) {
+					if (tag is string s) {
+						yield return s;
+					} else if (tag is JObject o) {
+						string json = o.ToString();
+						yield return JsonConvert.DeserializeAnonymousType(json, new {
+							value = ""
+						}).value;
+					}
+				}
+			}
+		}
     }
 
     public abstract class FileSubmission : Submission {
