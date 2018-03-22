@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -32,8 +33,14 @@ namespace FurryNetworkLib {
         public bool IsAuthenticatedUser { get; set; }
         public bool Following { get; set; }
         public bool FollowingCommissions { get; set; }
-        public Avatars Avatars { get; set; }
         public object Banners { get; set; }
         public CharacterStats Stats { get; set; }
-    }
+
+		[JsonProperty(PropertyName = "avatars")]
+		public JToken _avatars_json { get; set; }
+
+		public Avatars Avatars => _avatars_json is JObject
+			? JsonConvert.DeserializeObject<Avatars>(_avatars_json.ToString())
+			: null;
+	}
 }
