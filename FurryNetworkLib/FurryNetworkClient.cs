@@ -87,6 +87,14 @@ namespace FurryNetworkLib {
                 };
             }
         }
+
+		public class TokenException : Exception {
+			public readonly string Error;
+
+			public TokenException(string error, string error_description, Exception innerException) : base(error_description, innerException) {
+				Error = error;
+			}
+		}
         
         private async Task GetNewAccessToken() {
             var req = WebRequest.CreateHttp("https://beta.furrynetwork.com/api/oauth/token");
@@ -100,23 +108,35 @@ namespace FurryNetworkLib {
                 await sw.WriteAsync($"refresh_token={RefreshToken}");
                 await sw.FlushAsync();
             }
-            using (var resp = await req.GetResponseAsync())
-            using (var sr = new StreamReader(resp.GetResponseStream())) {
-                string json = await sr.ReadToEndAsync();
-                var obj = JsonConvert.DeserializeAnonymousType(json, new {
-                    access_token = "",
-                    expires_in = 0,
-                    token_type = "",
-                    refresh_token = "",
-                    user_id = 0
-                });
-                if (obj.token_type != "bearer") {
-                    throw new Exception("Token returned was not a bearer token");
-                }
+			try {
+				using (var resp = await req.GetResponseAsync())
+				using (var sr = new StreamReader(resp.GetResponseStream())) {
+					string json = await sr.ReadToEndAsync();
+					var obj = JsonConvert.DeserializeAnonymousType(json, new {
+						access_token = "",
+						expires_in = 0,
+						token_type = "",
+						refresh_token = "",
+						user_id = 0
+					});
+					if (obj.token_type != "bearer") {
+						throw new Exception("Token returned was not a bearer token");
+					}
 
-                RefreshToken = obj.refresh_token ?? RefreshToken;
-                AccessToken = obj.access_token;
-            }
+					RefreshToken = obj.refresh_token ?? RefreshToken;
+					AccessToken = obj.access_token;
+				}
+			} catch (WebException ex) {
+				// Attempt to get information about the error.
+				using (var sr = new StreamReader(ex.Response.GetResponseStream())) {
+					string json = await sr.ReadToEndAsync();
+					var o = JsonConvert.DeserializeAnonymousType(json, new {
+						error = "",
+						error_description = ""
+					});
+					throw new TokenException(o.error, o.error_description, ex);
+				}
+			}
         }
 
         /// <summary>
