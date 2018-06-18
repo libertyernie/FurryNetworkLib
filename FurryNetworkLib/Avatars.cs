@@ -12,5 +12,12 @@ namespace FurryNetworkLib {
 		public string GetLargest() {
 			return Original ?? Avatar ?? Small ?? Tiny;
 		}
+
+		public string GetBySize(int px = 0) {
+			return (px <= 50 ? Tiny : null)
+				?? (px <= 80 ? Small : null)
+				?? (px <= 315 ? Avatar : null)
+				?? GetLargest();
+		}
 	}
 }
